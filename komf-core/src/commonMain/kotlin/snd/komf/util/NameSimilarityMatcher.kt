@@ -2,6 +2,7 @@ package snd.komf.util
 
 import snd.komf.util.NameSimilarityMatcher.NameMatchingMode.CLOSEST_MATCH
 import snd.komf.util.NameSimilarityMatcher.NameMatchingMode.EXACT
+import java.text.Normalizer
 import kotlin.math.min
 
 
@@ -12,10 +13,19 @@ class NameSimilarityMatcher private constructor(private val mode: NameMatchingMo
     }
 
     fun matches(name: String, nameToMatch: String): Boolean {
-        return if (mode == EXACT || name.length in 1..3) name == nameToMatch
+        // Series names come from directory names on disk. macOS stores and transmits
+        // filenames in NFD, while metadata providers return NFC, so the two forms have
+        // to be reconciled before any comparison. Left as raw codepoints, a single
+        // decomposed Japanese dakuten (ビ -> ヒ + U+3099) costs two edits — a substitution
+        // plus an insertion — which already exceeds the threshold of 1 allowed for a
+        // 4-6 character name, making such titles impossible to match.
+        val normalizedName = normalize(name)
+        val normalizedNameToMatch = normalize(nameToMatch)
+
+        return if (mode == EXACT || normalizedName.length in 1..3) normalizedName == normalizedNameToMatch
         else {
-            val distance = levenshtein(name.uppercase(), nameToMatch.uppercase())
-            val distanceThreshold = when (name.length) {
+            val distance = levenshtein(normalizedName.uppercase(), normalizedNameToMatch.uppercase())
+            val distanceThreshold = when (normalizedName.length) {
                 in 4..6 -> 1
                 in 7..9 -> 2
                 else -> 3
@@ -23,6 +33,10 @@ class NameSimilarityMatcher private constructor(private val mode: NameMatchingMo
             return distance <= distanceThreshold
         }
     }
+
+    private fun normalize(value: String): String =
+        if (Normalizer.isNormalized(value, Normalizer.Form.NFC)) value
+        else Normalizer.normalize(value, Normalizer.Form.NFC)
 
     companion object {
         private val EXACT_MATCHER: NameSimilarityMatcher = NameSimilarityMatcher(EXACT)
