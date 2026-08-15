@@ -228,13 +228,23 @@ class BangumiMetadataMapper(
         return isbnIntermediate + checkDigit
     }
 
-    fun toSearchResult(searchData: SubjectSearchData): SeriesSearchResult {
+    fun toSearchResult(searchData: SubjectSearchData, subject: BangumiSubject? = null): SeriesSearchResult {
+        val title = searchData.nameCn?.ifBlank { searchData.name } ?: searchData.name
         return SeriesSearchResult(
             url = subjectUrl(searchData.id),
             imageUrl = searchData.image?.ifBlank { null },
             provider = CoreProviders.BANGUMI,
             resultId = searchData.id.toString(),
-            title = searchData.nameCn?.ifBlank { searchData.name } ?: searchData.name,
+            title = title,
+            // 漫画 / 小说 / 轻小说 - the one field that separates a manga from the light
+            // novel of the same name, which the search response itself does not carry.
+            bookType = subject?.platform?.ifBlank { null },
+            releaseDate = subject?.date?.ifBlank { null },
+            summary = (subject?.summary ?: searchData.summary)
+                ?.replace(Regex("\\s+"), " ")
+                ?.trim()
+                ?.ifBlank { null }
+                ?.take(200),
         )
     }
 

@@ -31,6 +31,9 @@ import snd.komf.providers.bookwalker.BookWalkerClient
 import snd.komf.providers.bookwalker.BookWalkerMapper
 import snd.komf.providers.bookwalker.BookWalkerMetadataProvider
 import snd.komf.providers.comicvine.ComicVineClient
+import snd.komf.providers.bookwalkerjp.BookWalkerJpClient
+import snd.komf.providers.bookwalkerjp.BookWalkerJpMetadataMapper
+import snd.komf.providers.bookwalkerjp.BookWalkerJpMetadataProvider
 import snd.komf.providers.dlsite.DlsiteClient
 import snd.komf.providers.dlsite.DlsiteMetadataMapper
 import snd.komf.providers.dlsite.DlsiteMetadataProvider
@@ -165,6 +168,21 @@ class ProvidersModule(
 
     // DLsite is a storefront, not an API. Keep the request rate conservative:
     // a match walks the listing then one product page per candidate.
+    // Another storefront rather than an API: one listing request plus a page per
+    // candidate, so keep the rate as low as DLsite's.
+    private val bookWalkerJpClient = BookWalkerJpClient(
+        baseHttpClient.config {
+            install(HttpRequestRateLimiter) {
+                interval = 10.seconds
+                eventsPerInterval = 10
+                allowBurst = false
+            }
+            install(HttpRequestRetry) {
+                defaultRetry()
+            }
+        }
+    )
+
     private val dlsiteClient = DlsiteClient(
         baseHttpClient.config {
             install(HttpRequestRateLimiter) {
@@ -377,6 +395,12 @@ class ProvidersModule(
                 defaultNameMatcher
             ),
             dlsitePriority = config.dlsite.priority,
+            bookWalkerJp = createBookWalkerJpMetadataProvider(
+                config.bookWalkerJp,
+                bookWalkerJpClient,
+                defaultNameMatcher
+            ),
+            bookWalkerJpPriority = config.bookWalkerJp.priority,
             anilist = createAnilistMetadataProvider(
                 config.aniList,
                 aniListClient,
@@ -513,6 +537,25 @@ class ProvidersModule(
             mangaUpdatesSimilarityMatcher,
             config.seriesMetadata.thumbnail,
             config.mediaType
+        )
+    }
+
+    private fun createBookWalkerJpMetadataProvider(
+        config: ProviderConfig,
+        client: BookWalkerJpClient,
+        defaultNameMatcher: NameSimilarityMatcher,
+    ): BookWalkerJpMetadataProvider? {
+        if (config.enabled.not()) return null
+        return BookWalkerJpMetadataProvider(
+            client = client,
+            metadataMapper = BookWalkerJpMetadataMapper(
+                seriesMetadataConfig = config.seriesMetadata,
+                authorRoles = config.authorRoles,
+                artistRoles = config.artistRoles,
+            ),
+            nameMatcher = config.nameMatchingMode?.let { nameSimilarityMatcher(it) }
+                ?: defaultNameMatcher,
+            fetchSeriesCovers = config.seriesMetadata.thumbnail,
         )
     }
 
@@ -911,6 +954,8 @@ class ProvidersModule(
 
         private val dlsite: DlsiteMetadataProvider?,
         private val dlsitePriority: Int,
+        private val bookWalkerJp: BookWalkerJpMetadataProvider?,
+        private val bookWalkerJpPriority: Int,
     ) {
 
         val providers = listOfNotNull(
@@ -928,7 +973,8 @@ class ProvidersModule(
             hentag?.let { it to hentagPriority },
             mangaBaka?.let { it to mangaBakaPriority },
             webtoons?.let { it to webtoonsPriority },
-            dlsite?.let { it to dlsitePriority }
+            dlsite?.let { it to dlsitePriority },
+            bookWalkerJp?.let { it to bookWalkerJpPriority }
         )
             .sortedBy { (_, priority) -> priority }
             .toMap()
@@ -951,6 +997,7 @@ class ProvidersModule(
                 CoreProviders.MANGA_BAKA -> mangaBaka
                 CoreProviders.WEBTOONS -> webtoons
                 CoreProviders.DLSITE -> dlsite
+                CoreProviders.BOOK_WALKER_JP -> bookWalkerJp
             }
         }
     }

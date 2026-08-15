@@ -76,6 +76,7 @@ class DlsiteMetadataMapper(
             title = result.title ?: result.id.value,
             provider = DLSITE,
             resultId = result.id.value,
+            bookType = result.id.catalogue,
         )
     }
 }

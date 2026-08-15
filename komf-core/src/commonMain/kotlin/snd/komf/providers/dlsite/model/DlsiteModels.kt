@@ -22,6 +22,15 @@ value class DlsiteProductId(val value: String) {
         }
 
     val url get() = "https://www.dlsite.com/$section/work/=/product_id/$value.html"
+
+    /** Free to derive from the prefix, and enough to tell a doujin work from a
+     *  commercial release in a list of otherwise identical titles. */
+    val catalogue: String
+        get() = when (value.take(2)) {
+            "BJ" -> "商業誌"
+            "VJ" -> "ゲーム"
+            else -> "同人誌"
+        }
 }
 
 data class DlsiteSearchResult(

@@ -56,9 +56,15 @@ class BangumiMetadataProvider(
         return client.searchSeries(seriesName).data.asSequence()
             .filter { it.tags.none { tag -> tag.name == "漫画单行本" } }
             .take(limit)
-            .map {
-                metadataMapper.toSearchResult(it)
-            }.toList()
+            .toList()
+            .map { data ->
+                // The search endpoint returns neither the platform nor the release date,
+                // and those are what tell a manga from a light novel, and a series from
+                // one of its own volumes. One request per result is affordable here -
+                // this only runs when somebody is sitting in front of the results.
+                val subject = runCatching { client.getSubject(data.id) }.getOrNull()
+                metadataMapper.toSearchResult(data, subject)
+            }
     }
 
     override suspend fun matchSeriesMetadata(matchQuery: MatchQuery): ProviderSeriesMetadata? {

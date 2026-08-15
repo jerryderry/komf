@@ -11,4 +11,7 @@ data class KomfMetadataSeriesSearchResult(
     val title: String,
     val provider: KomfProviders,
     val resultId: KomfProviderSeriesId,
+    val bookType: String? = null,
+    val releaseDate: String? = null,
+    val summary: String? = null,
 )

@@ -4,6 +4,7 @@ enum class CoreProviders {
     ANILIST,
     BANGUMI,
     BOOK_WALKER,
+    BOOK_WALKER_JP,
     COMIC_VINE,
     DLSITE,
     HENTAG,

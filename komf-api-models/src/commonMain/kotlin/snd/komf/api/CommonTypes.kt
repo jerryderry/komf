@@ -57,6 +57,7 @@ enum class KomfCoreProviders : KomfProviders {
     BANGUMI,
     BOOK_WALKER,
     COMIC_VINE,
+    BOOK_WALKER_JP,
     DLSITE,
     HENTAG,
     KODANSHA,

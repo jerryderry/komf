@@ -90,7 +90,10 @@ class MetadataRoutes(
                         imageUrl = it.imageUrl,
                         title = it.title,
                         provider = it.provider.fromProvider(),
-                        resultId = KomfProviderSeriesId(it.resultId)
+                        resultId = KomfProviderSeriesId(it.resultId),
+                        bookType = it.bookType,
+                        releaseDate = it.releaseDate,
+                        summary = it.summary,
                     )
                 })
             } catch (exception: ResponseException) {
