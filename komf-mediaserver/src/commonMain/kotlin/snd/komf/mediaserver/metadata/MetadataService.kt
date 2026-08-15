@@ -66,20 +66,36 @@ class MetadataService(
     suspend fun searchSeriesMetadata(
         seriesName: String,
         libraryId: MediaServerLibraryId
-    ): Collection<SeriesSearchResult> {
-        val providers = metadataProviders.providers(libraryId.value)
+    ): Collection<SeriesSearchResult> = search(metadataProviders.providers(libraryId.value), seriesName)
 
-        return providers
-            .map { coroutineScope.async { it.searchSeries(seriesName) } }
-            .flatMap { it.await() }
-    }
+    suspend fun searchSeriesMetadata(seriesName: String): Collection<SeriesSearchResult> =
+        search(metadataProviders.defaultProvidersList(), seriesName)
 
-    suspend fun searchSeriesMetadata(seriesName: String): Collection<SeriesSearchResult> {
-        val providers = metadataProviders.defaultProvidersList()
-        return providers
-            .map { coroutineScope.async { it.searchSeries(seriesName) } }
+    /**
+     * One provider's bad day is not the search's. Previously any provider that threw
+     * took the whole request down with it, so a service returning 403 - as AniList did
+     * when it disabled its API - meant every manual search failed outright, however
+     * many other providers had answered. A provider that fails now simply contributes
+     * nothing and says so in the log.
+     */
+    private suspend fun search(
+        providers: Collection<MetadataProvider>,
+        seriesName: String,
+    ): Collection<SeriesSearchResult> =
+        providers
+            .map { provider ->
+                coroutineScope.async {
+                    try {
+                        provider.searchSeries(seriesName)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        logger.warn(e) { "${provider.providerName()} search for \"$seriesName\" failed, skipping it" }
+                        emptyList()
+                    }
+                }
+            }
             .flatMap { it.await() }
-    }
 
     suspend fun getSeriesCover(
         libraryId: MediaServerLibraryId,
