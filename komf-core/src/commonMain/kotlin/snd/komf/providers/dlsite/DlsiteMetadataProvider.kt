@@ -14,7 +14,7 @@ import snd.komf.providers.dlsite.model.DlsiteProductId
 import snd.komf.util.NameSimilarityMatcher
 
 /**
- * DLsite (dlsite.com/maniax) - commercial digital doujinshi.
+ * DLsite (dlsite.com) - commercial digital doujinshi and comics.
  *
  * Fills the gap left by Hentag, whose API now answers 404. Coverage is partial
  * by nature: DLsite indexes works sold there, so event and scan releases are
@@ -69,7 +69,11 @@ class DlsiteMetadataProvider(
             if (title != null && !nameMatcher.matches(seriesName, title)) continue
 
             val product = client.getProduct(result.id) ?: continue
-            if (!nameMatcher.matches(seriesName, product.title)) continue
+            // For a serialised work the product is one chapter and its title ends in
+            // the chapter number, so the series name is the one that can match a
+            // folder. Accept either.
+            val names = listOfNotNull(product.title, product.series)
+            if (!nameMatcher.matches(seriesName, names)) continue
 
             val thumbnail = if (fetchSeriesCovers) client.getThumbnail(product) else null
             return metadataMapper.toSeriesMetadata(product, thumbnail)

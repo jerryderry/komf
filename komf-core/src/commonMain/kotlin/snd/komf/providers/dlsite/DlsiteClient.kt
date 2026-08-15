@@ -30,10 +30,8 @@ class DlsiteClient(
         return parser.parseSearchResults(ktor.get(url) { browserHeaders() }.bodyAsText())
     }
 
-    suspend fun getProduct(id: DlsiteProductId): DlsiteProduct? {
-        val url = "$dlsiteBaseUrl/maniax/work/=/product_id/${id.value}.html"
-        return parser.parseProduct(id, ktor.get(url) { browserHeaders() }.bodyAsText())
-    }
+    suspend fun getProduct(id: DlsiteProductId): DlsiteProduct? =
+        parser.parseProduct(id, ktor.get(id.url) { browserHeaders() }.bodyAsText())
 
     suspend fun getThumbnail(product: DlsiteProduct): Image? {
         val url = product.coverUrl ?: return null

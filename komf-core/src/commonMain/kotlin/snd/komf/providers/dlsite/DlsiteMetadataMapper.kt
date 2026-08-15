@@ -32,8 +32,19 @@ class DlsiteMetadataMapper(
             (authorRoles + artistRoles).map { role -> Author(circle, role) }
         } ?: emptyList()
 
+        // A serialised work is sold one product per chapter, so the product title
+        // ends in a chapter number the library folder does not have ("...妻６４").
+        // The outline's シリーズ名 names the series itself, which is what the folder
+        // is named after. Standalone works - most of the doujin catalogue - carry no
+        // シリーズ名 at all, so the product title remains the fallback and is kept as
+        // an alternative title either way.
+        val titles = listOfNotNull(
+            product.series?.let { SeriesTitle(it, null, "ja") },
+            SeriesTitle(product.title, null, "ja"),
+        ).distinctBy { it.name }
+
         val metadata = SeriesMetadata(
-            titles = listOf(SeriesTitle(product.title, null, "ja")),
+            titles = titles,
             summary = product.summary,
             publisher = product.circle?.let { Publisher(it, ORIGINAL) },
             tags = product.genres,
@@ -60,7 +71,7 @@ class DlsiteMetadataMapper(
 
     fun toSeriesSearchResult(result: DlsiteSearchResult): SeriesSearchResult {
         return SeriesSearchResult(
-            url = "https://www.dlsite.com/maniax/work/=/product_id/${result.id.value}.html",
+            url = result.id.url,
             imageUrl = result.thumbnailUrl,
             title = result.title ?: result.id.value,
             provider = DLSITE,

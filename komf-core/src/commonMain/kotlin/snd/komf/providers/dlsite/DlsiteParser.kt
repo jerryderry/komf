@@ -7,7 +7,10 @@ import snd.komf.providers.dlsite.model.DlsiteProduct
 import snd.komf.providers.dlsite.model.DlsiteProductId
 import snd.komf.providers.dlsite.model.DlsiteSearchResult
 
-private val productIdRegex = "product_id/(RJ\\d+)\\.html".toRegex()
+// RJ (同人), BJ (commercial comics) and VJ (games) all appear in one keyword
+// search. Matching only RJ silently dropped every commercial title, which is
+// most of what a keyword search for a serialised work returns.
+private val productIdRegex = "product_id/([A-Z]{2}\\d+)\\.html".toRegex()
 private val japaneseDateRegex = "(\\d{4})年(\\d{1,2})月(\\d{1,2})日".toRegex()
 private val digitsRegex = "(\\d+)".toRegex()
 
