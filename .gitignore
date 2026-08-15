@@ -51,4 +51,4 @@ kls_database.db
 kls-classpath*
 
 ### neovim ###
-.nvim.lua
+.nvim.lua.kotlin/

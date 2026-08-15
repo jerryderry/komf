@@ -31,6 +31,9 @@ import snd.komf.providers.bookwalker.BookWalkerClient
 import snd.komf.providers.bookwalker.BookWalkerMapper
 import snd.komf.providers.bookwalker.BookWalkerMetadataProvider
 import snd.komf.providers.comicvine.ComicVineClient
+import snd.komf.providers.dlsite.DlsiteClient
+import snd.komf.providers.dlsite.DlsiteMetadataMapper
+import snd.komf.providers.dlsite.DlsiteMetadataProvider
 import snd.komf.providers.comicvine.ComicVineMetadataMapper
 import snd.komf.providers.comicvine.ComicVineMetadataProvider
 import snd.komf.providers.comicvine.ComicVineRateLimiter
@@ -153,6 +156,21 @@ class ProvidersModule(
                 interval = 10.seconds
                 eventsPerInterval = 15
                 allowBurst = true
+            }
+            install(HttpRequestRetry) {
+                defaultRetry()
+            }
+        }
+    )
+
+    // DLsite is a storefront, not an API. Keep the request rate conservative:
+    // a match walks the listing then one product page per candidate.
+    private val dlsiteClient = DlsiteClient(
+        baseHttpClient.config {
+            install(HttpRequestRateLimiter) {
+                interval = 10.seconds
+                eventsPerInterval = 10
+                allowBurst = false
             }
             install(HttpRequestRetry) {
                 defaultRetry()
@@ -353,6 +371,12 @@ class ProvidersModule(
                 defaultNameMatcher
             ),
             nautiljonPriority = config.nautiljon.priority,
+            dlsite = createDlsiteMetadataProvider(
+                config.dlsite,
+                dlsiteClient,
+                defaultNameMatcher
+            ),
+            dlsitePriority = config.dlsite.priority,
             anilist = createAnilistMetadataProvider(
                 config.aniList,
                 aniListClient,
@@ -489,6 +513,25 @@ class ProvidersModule(
             mangaUpdatesSimilarityMatcher,
             config.seriesMetadata.thumbnail,
             config.mediaType
+        )
+    }
+
+    private fun createDlsiteMetadataProvider(
+        config: ProviderConfig,
+        client: DlsiteClient,
+        defaultNameMatcher: NameSimilarityMatcher,
+    ): DlsiteMetadataProvider? {
+        if (config.enabled.not()) return null
+        return DlsiteMetadataProvider(
+            client = client,
+            metadataMapper = DlsiteMetadataMapper(
+                seriesMetadataConfig = config.seriesMetadata,
+                authorRoles = config.authorRoles,
+                artistRoles = config.artistRoles,
+            ),
+            nameMatcher = config.nameMatchingMode?.let { nameSimilarityMatcher(it) }
+                ?: defaultNameMatcher,
+            fetchSeriesCovers = config.seriesMetadata.thumbnail,
         )
     }
 
@@ -865,6 +908,9 @@ class ProvidersModule(
 
         private val webtoons: WebtoonsMetadataProvider?,
         private val webtoonsPriority: Int,
+
+        private val dlsite: DlsiteMetadataProvider?,
+        private val dlsitePriority: Int,
     ) {
 
         val providers = listOfNotNull(
@@ -881,7 +927,8 @@ class ProvidersModule(
             comicVine?.let { it to comicVinePriority },
             hentag?.let { it to hentagPriority },
             mangaBaka?.let { it to mangaBakaPriority },
-            webtoons?.let { it to webtoonsPriority }
+            webtoons?.let { it to webtoonsPriority },
+            dlsite?.let { it to dlsitePriority }
         )
             .sortedBy { (_, priority) -> priority }
             .toMap()
@@ -903,6 +950,7 @@ class ProvidersModule(
                 CoreProviders.HENTAG -> hentag
                 CoreProviders.MANGA_BAKA -> mangaBaka
                 CoreProviders.WEBTOONS -> webtoons
+                CoreProviders.DLSITE -> dlsite
             }
         }
     }
