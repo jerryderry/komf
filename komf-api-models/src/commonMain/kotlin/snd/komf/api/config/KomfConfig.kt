@@ -114,6 +114,8 @@ data class ProvidersConfigDto(
     val kodansha: ProviderConfigDto,
     val viz: ProviderConfigDto,
     val bookWalker: ProviderConfigDto,
+    val bookWalkerJp: ProviderConfigDto,
+    val dlsite: ProviderConfigDto,
     val mangaDex: MangaDexConfigDto,
     val bangumi: ProviderConfigDto,
     val comicVine: ProviderConfigDto,

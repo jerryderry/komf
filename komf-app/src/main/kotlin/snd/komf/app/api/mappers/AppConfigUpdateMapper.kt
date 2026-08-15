@@ -145,6 +145,10 @@ class AppConfigUpdateMapper {
                 ?.let { providerConfig(config.viz, it) } ?: config.viz,
             bookWalker = patch.bookWalker.getOrNull()
                 ?.let { providerConfig(config.bookWalker, it) } ?: config.bookWalker,
+            bookWalkerJp = patch.bookWalkerJp.getOrNull()
+                ?.let { providerConfig(config.bookWalkerJp, it) } ?: config.bookWalkerJp,
+            dlsite = patch.dlsite.getOrNull()
+                ?.let { providerConfig(config.dlsite, it) } ?: config.dlsite,
             mangaDex = patch.mangaDex.getOrNull()
                 ?.let { mangaDexProviderConfig(config.mangaDex, it) } ?: config.mangaDex,
             bangumi = patch.bangumi.getOrNull()

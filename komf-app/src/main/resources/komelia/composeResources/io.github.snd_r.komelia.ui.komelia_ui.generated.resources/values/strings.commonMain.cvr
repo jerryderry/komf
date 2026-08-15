@@ -355,8 +355,10 @@ string|komf_processing_title_settings|VGl0bGUgc2V0dGluZ3M=
 string|komf_processing_update_modes|dXBkYXRlIE1vZGVz
 string|komf_provider_anilist|QW5pTGlzdA==
 string|komf_provider_bangumi|QmFuZ3VtaQ==
+string|komf_provider_bookwalkerjp|Qm9va3dhbGtlciBKYXBhbg==
 string|komf_provider_bookwalker|Qm9va3dhbGtlciBHbG9iYWw=
 string|komf_provider_comicvine|Q29taWNWaW5l
+string|komf_provider_dlsite|RExzaXRl
 string|komf_provider_hentag|SGVudGFn
 string|komf_provider_kodansha|S29kYW5zaGEgVVM=
 string|komf_provider_mal|TXlBbmltZUxpc3Q=

@@ -170,6 +170,8 @@ class AppConfigMapper {
             kodansha = toDto(config.kodansha),
             viz = toDto(config.viz),
             bookWalker = toDto(config.bookWalker),
+            bookWalkerJp = toDto(config.bookWalkerJp),
+            dlsite = toDto(config.dlsite),
             mangaDex = toDto(config.mangaDex),
             bangumi = toDto(config.bangumi),
             comicVine = toDto(config.comicVine),

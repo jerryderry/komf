@@ -105,6 +105,8 @@ data class ProvidersConfigUpdateRequest(
     val kodansha: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
     val viz: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
     val bookWalker: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
+    val bookWalkerJp: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
+    val dlsite: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
     val mangaDex: PatchValue<MangaDexConfigUpdateRequest> = PatchValue.Unset,
     val bangumi: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
     val comicVine: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
