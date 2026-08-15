@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.server.cio)
     implementation(libs.ktor.server.cors)
+    implementation(libs.ktor.server.compression)
     implementation(libs.ktor.server.default.headers)
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.server.sse)

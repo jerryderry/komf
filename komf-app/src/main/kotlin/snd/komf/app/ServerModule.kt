@@ -9,6 +9,11 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.http.content.CompressedFileType
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.ContentType
+import io.ktor.server.plugins.compression.Compression
+import io.ktor.server.plugins.compression.deflate
+import io.ktor.server.plugins.compression.gzip
+import io.ktor.server.plugins.compression.matchContentType
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -62,6 +67,21 @@ class ServerModule(
             allowHeaders { true }
             anyHost()
             allowNonSimpleContentTypes = true
+        }
+        // The bundled web UI is ~21MB, almost all of it wasm, and it was going over the
+        // wire uncompressed - nothing can paint until it has all arrived and compiled,
+        // which over a LAN reads as a UI that renders its layout with no text in it.
+        // wasm and JS compress by roughly 4x.
+        install(Compression) {
+            gzip()
+            deflate()
+            // Skip what is already compressed; the covers Komf proxies are JPEG.
+            matchContentType(
+                ContentType.Application.Wasm,
+                ContentType.Application.JavaScript,
+                ContentType.Application.Json,
+                ContentType.Text.Any,
+            )
         }
         install(SSE)
         install(DefaultHeaders) {
