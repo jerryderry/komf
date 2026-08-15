@@ -171,6 +171,7 @@ class AppConfigMapper {
             viz = toDto(config.viz),
             bookWalker = toDto(config.bookWalker),
             bookWalkerJp = toDto(config.bookWalkerJp),
+            cmoa = toDto(config.cmoa),
             dlsite = toDto(config.dlsite),
             mangaDex = toDto(config.mangaDex),
             bangumi = toDto(config.bangumi),

@@ -34,6 +34,9 @@ import snd.komf.providers.comicvine.ComicVineClient
 import snd.komf.providers.bookwalkerjp.BookWalkerJpClient
 import snd.komf.providers.bookwalkerjp.BookWalkerJpMetadataMapper
 import snd.komf.providers.bookwalkerjp.BookWalkerJpMetadataProvider
+import snd.komf.providers.cmoa.CmoaClient
+import snd.komf.providers.cmoa.CmoaMetadataMapper
+import snd.komf.providers.cmoa.CmoaMetadataProvider
 import snd.komf.providers.dlsite.DlsiteClient
 import snd.komf.providers.dlsite.DlsiteMetadataMapper
 import snd.komf.providers.dlsite.DlsiteMetadataProvider
@@ -171,6 +174,19 @@ class ProvidersModule(
     // Another storefront rather than an API: one listing request plus a page per
     // candidate, so keep the rate as low as DLsite's.
     private val bookWalkerJpClient = BookWalkerJpClient(
+        baseHttpClient.config {
+            install(HttpRequestRateLimiter) {
+                interval = 10.seconds
+                eventsPerInterval = 10
+                allowBurst = false
+            }
+            install(HttpRequestRetry) {
+                defaultRetry()
+            }
+        }
+    )
+
+    private val cmoaClient = CmoaClient(
         baseHttpClient.config {
             install(HttpRequestRateLimiter) {
                 interval = 10.seconds
@@ -401,6 +417,12 @@ class ProvidersModule(
                 defaultNameMatcher
             ),
             bookWalkerJpPriority = config.bookWalkerJp.priority,
+            cmoa = createCmoaMetadataProvider(
+                config.cmoa,
+                cmoaClient,
+                defaultNameMatcher
+            ),
+            cmoaPriority = config.cmoa.priority,
             anilist = createAnilistMetadataProvider(
                 config.aniList,
                 aniListClient,
@@ -537,6 +559,25 @@ class ProvidersModule(
             mangaUpdatesSimilarityMatcher,
             config.seriesMetadata.thumbnail,
             config.mediaType
+        )
+    }
+
+    private fun createCmoaMetadataProvider(
+        config: ProviderConfig,
+        client: CmoaClient,
+        defaultNameMatcher: NameSimilarityMatcher,
+    ): CmoaMetadataProvider? {
+        if (config.enabled.not()) return null
+        return CmoaMetadataProvider(
+            client = client,
+            metadataMapper = CmoaMetadataMapper(
+                seriesMetadataConfig = config.seriesMetadata,
+                authorRoles = config.authorRoles,
+                artistRoles = config.artistRoles,
+            ),
+            nameMatcher = config.nameMatchingMode?.let { nameSimilarityMatcher(it) }
+                ?: defaultNameMatcher,
+            fetchSeriesCovers = config.seriesMetadata.thumbnail,
         )
     }
 
@@ -956,6 +997,8 @@ class ProvidersModule(
         private val dlsitePriority: Int,
         private val bookWalkerJp: BookWalkerJpMetadataProvider?,
         private val bookWalkerJpPriority: Int,
+        private val cmoa: CmoaMetadataProvider?,
+        private val cmoaPriority: Int,
     ) {
 
         // Walked from the enum rather than hand-listed. The previous list was a
@@ -985,6 +1028,7 @@ class ProvidersModule(
                 CoreProviders.WEBTOONS -> webtoons
                 CoreProviders.DLSITE -> dlsite
                 CoreProviders.BOOK_WALKER_JP -> bookWalkerJp
+                CoreProviders.CMOA -> cmoa
             }
         }
 
@@ -1006,6 +1050,7 @@ class ProvidersModule(
                 CoreProviders.WEBTOONS -> webtoonsPriority
                 CoreProviders.DLSITE -> dlsitePriority
                 CoreProviders.BOOK_WALKER_JP -> bookWalkerJpPriority
+                CoreProviders.CMOA -> cmoaPriority
             }
     }
 

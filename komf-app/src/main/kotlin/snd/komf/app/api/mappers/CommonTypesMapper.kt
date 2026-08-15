@@ -93,6 +93,7 @@ fun CoreProviders.fromProvider() = when (this) {
     CoreProviders.BOOK_WALKER -> KomfCoreProviders.BOOK_WALKER
     CoreProviders.COMIC_VINE -> KomfCoreProviders.COMIC_VINE
     CoreProviders.BOOK_WALKER_JP -> KomfCoreProviders.BOOK_WALKER_JP
+    CoreProviders.CMOA -> KomfCoreProviders.CMOA
     CoreProviders.DLSITE -> KomfCoreProviders.DLSITE
     CoreProviders.HENTAG -> KomfCoreProviders.HENTAG
     CoreProviders.KODANSHA -> KomfCoreProviders.KODANSHA
@@ -112,6 +113,7 @@ fun KomfProviders.toProvider() = when (this) {
     KomfCoreProviders.BOOK_WALKER -> CoreProviders.BOOK_WALKER
     KomfCoreProviders.COMIC_VINE -> CoreProviders.COMIC_VINE
     KomfCoreProviders.BOOK_WALKER_JP -> CoreProviders.BOOK_WALKER_JP
+    KomfCoreProviders.CMOA -> CoreProviders.CMOA
     KomfCoreProviders.DLSITE -> CoreProviders.DLSITE
     KomfCoreProviders.HENTAG -> CoreProviders.HENTAG
     KomfCoreProviders.KODANSHA -> CoreProviders.KODANSHA

@@ -106,6 +106,7 @@ data class ProvidersConfigUpdateRequest(
     val viz: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
     val bookWalker: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
     val bookWalkerJp: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
+    val cmoa: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
     val dlsite: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,
     val mangaDex: PatchValue<MangaDexConfigUpdateRequest> = PatchValue.Unset,
     val bangumi: PatchValue<ProviderConfigUpdateRequest> = PatchValue.Unset,

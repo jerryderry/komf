@@ -38,6 +38,7 @@ data class ProvidersConfig(
     val viz: ProviderConfig = ProviderConfig(),
     val bookWalker: ProviderConfig = ProviderConfig(),
     val bookWalkerJp: ProviderConfig = ProviderConfig(),
+    val cmoa: ProviderConfig = ProviderConfig(),
     val mangaDex: MangaDexConfig = MangaDexConfig(),
     val bangumi: ProviderConfig = ProviderConfig(),
     val comicVine: ProviderConfig = ProviderConfig(),

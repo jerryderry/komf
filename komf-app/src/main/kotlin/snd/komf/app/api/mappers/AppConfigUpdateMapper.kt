@@ -168,6 +168,9 @@ class AppConfigUpdateMapper {
             CoreProviders.BOOK_WALKER_JP -> patch.bookWalkerJp.getOrNull()
                 ?.let { copy(bookWalkerJp = providerConfig(bookWalkerJp, it)) }
 
+            CoreProviders.CMOA -> patch.cmoa.getOrNull()
+                ?.let { copy(cmoa = providerConfig(cmoa, it)) }
+
             CoreProviders.DLSITE -> patch.dlsite.getOrNull()
                 ?.let { copy(dlsite = providerConfig(dlsite, it)) }
 
