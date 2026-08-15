@@ -11,8 +11,16 @@ object BookNameParser {
     )
 
     private val chapterRegexes = listOf(
-        "(?i)(\\sc|\\s?ch\\.\\s|\\s?chapter\\s|\\s?ep\\.\\s)(?<start>[0-9]+([.x#][0-9]+)?)(?<end>-[0-9]+([.x#][0-9]+)?)?".toRegex(),
-        ".*第(?<start>\\d+(\\.\\d+)?)-?(?<end>\\d+(\\.\\d+)?)?.*話".toRegex(),
+        // Chapter markers appear with any separator, not just a space: "ch. 12",
+        // "ch12", "_ch12", "-Ep.12". The bare "c" form stays restricted to a
+        // preceding space, because convention codes look identical otherwise -
+        // "(C105)" is Comiket 105, not chapter 105, and a looser pattern
+        // mis-reads a large part of a doujinshi library as chapters.
+        ("(?i)(?:(?<=\\s)c|(?:^|[\\s_\\-\\[(])(?:chapter|episode|ch|ep))" +
+            "\\.?[\\s_\\-]*(?<start>[0-9]+([.x#][0-9]+)?)(?<end>-[0-9]+([.x#][0-9]+)?)?").toRegex(),
+        // 話 is the Japanese form; 话 the simplified Chinese one, which is what
+        // Chinese-language releases use and which was previously unmatched.
+        ".*第(?<start>\\d+(\\.\\d+)?)-?(?<end>\\d+(\\.\\d+)?)?.*[話话]".toRegex(),
     )
     private val bookNumberRegexes = listOf(
         "(?i)(?:\\s|#|no\\.)(?<start>[0-9]+[AB]?([.x#][0-9]+)?)(?<end>-[0-9]+([.x#][0-9]+)?)?(?:\\s\\(.*\\)\\s*)*$".toRegex(),
