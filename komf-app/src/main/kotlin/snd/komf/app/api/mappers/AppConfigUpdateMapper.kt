@@ -35,6 +35,7 @@ import snd.komf.providers.MangaBakaConfig
 import snd.komf.providers.MangaDexConfig
 import snd.komf.providers.MetadataProvidersConfig
 import snd.komf.providers.ProviderConfig
+import snd.komf.providers.CoreProviders
 import snd.komf.providers.ProvidersConfig
 import snd.komf.providers.SeriesMetadataConfig
 import snd.komf.providers.mangadex.model.MangaDexLink
@@ -127,42 +128,67 @@ class AppConfigUpdateMapper {
             }.toMap() + addConfig
     }
 
-    private fun providersConfig(config: ProvidersConfig, patch: ProvidersConfigUpdateRequest): ProvidersConfig {
-        return config.copy(
-            mangaUpdates = patch.mangaUpdates.getOrNull()
-                ?.let { providerConfig(config.mangaUpdates, it) } ?: config.mangaUpdates,
-            mal = patch.mal.getOrNull()
-                ?.let { providerConfig(config.mal, it) } ?: config.mal,
-            nautiljon = patch.nautiljon.getOrNull()
-                ?.let { providerConfig(config.nautiljon, it) } ?: config.nautiljon,
-            aniList = patch.aniList.getOrNull()
-                ?.let { aniListProviderConfig(config.aniList, it) } ?: config.aniList,
-            yenPress = patch.yenPress.getOrNull()
-                ?.let { providerConfig(config.yenPress, it) } ?: config.yenPress,
-            kodansha = patch.kodansha.getOrNull()
-                ?.let { providerConfig(config.kodansha, it) } ?: config.kodansha,
-            viz = patch.viz.getOrNull()
-                ?.let { providerConfig(config.viz, it) } ?: config.viz,
-            bookWalker = patch.bookWalker.getOrNull()
-                ?.let { providerConfig(config.bookWalker, it) } ?: config.bookWalker,
-            bookWalkerJp = patch.bookWalkerJp.getOrNull()
-                ?.let { providerConfig(config.bookWalkerJp, it) } ?: config.bookWalkerJp,
-            dlsite = patch.dlsite.getOrNull()
-                ?.let { providerConfig(config.dlsite, it) } ?: config.dlsite,
-            mangaDex = patch.mangaDex.getOrNull()
-                ?.let { mangaDexProviderConfig(config.mangaDex, it) } ?: config.mangaDex,
-            bangumi = patch.bangumi.getOrNull()
-                ?.let { providerConfig(config.bangumi, it) } ?: config.bangumi,
-            comicVine = patch.comicVine.getOrNull()
-                ?.let { providerConfig(config.comicVine, it) } ?: config.comicVine,
-            hentag = patch.hentag.getOrNull()
-                ?.let { providerConfig(config.hentag, it) } ?: config.hentag,
-            mangaBaka = patch.mangaBaka.getOrNull()
-                ?.let { mangaBakaProviderConfig(config.mangaBaka, it) } ?: config.mangaBaka,
-            webtoons = patch.webtoons.getOrNull()
-                ?.let { providerConfig(config.webtoons, it) } ?: config.webtoons,
-        )
-    }
+    // Folded over the enum so the compiler owns the inventory. As a copy() with one
+    // named argument per provider, a forgotten line was not an error - the patch was
+    // accepted, nothing was written, and the setting quietly refused to stick.
+    private fun providersConfig(
+        config: ProvidersConfig,
+        patch: ProvidersConfigUpdateRequest,
+    ): ProvidersConfig = CoreProviders.entries.fold(config) { acc, provider -> acc.patched(provider, patch) }
+
+    private fun ProvidersConfig.patched(
+        provider: CoreProviders,
+        patch: ProvidersConfigUpdateRequest,
+    ): ProvidersConfig =
+        when (provider) {
+            CoreProviders.MANGA_UPDATES -> patch.mangaUpdates.getOrNull()
+                ?.let { copy(mangaUpdates = providerConfig(mangaUpdates, it)) }
+
+            CoreProviders.MAL -> patch.mal.getOrNull()
+                ?.let { copy(mal = providerConfig(mal, it)) }
+
+            CoreProviders.NAUTILJON -> patch.nautiljon.getOrNull()
+                ?.let { copy(nautiljon = providerConfig(nautiljon, it)) }
+
+            CoreProviders.ANILIST -> patch.aniList.getOrNull()
+                ?.let { copy(aniList = aniListProviderConfig(aniList, it)) }
+
+            CoreProviders.YEN_PRESS -> patch.yenPress.getOrNull()
+                ?.let { copy(yenPress = providerConfig(yenPress, it)) }
+
+            CoreProviders.KODANSHA -> patch.kodansha.getOrNull()
+                ?.let { copy(kodansha = providerConfig(kodansha, it)) }
+
+            CoreProviders.VIZ -> patch.viz.getOrNull()
+                ?.let { copy(viz = providerConfig(viz, it)) }
+
+            CoreProviders.BOOK_WALKER -> patch.bookWalker.getOrNull()
+                ?.let { copy(bookWalker = providerConfig(bookWalker, it)) }
+
+            CoreProviders.BOOK_WALKER_JP -> patch.bookWalkerJp.getOrNull()
+                ?.let { copy(bookWalkerJp = providerConfig(bookWalkerJp, it)) }
+
+            CoreProviders.DLSITE -> patch.dlsite.getOrNull()
+                ?.let { copy(dlsite = providerConfig(dlsite, it)) }
+
+            CoreProviders.MANGADEX -> patch.mangaDex.getOrNull()
+                ?.let { copy(mangaDex = mangaDexProviderConfig(mangaDex, it)) }
+
+            CoreProviders.BANGUMI -> patch.bangumi.getOrNull()
+                ?.let { copy(bangumi = providerConfig(bangumi, it)) }
+
+            CoreProviders.COMIC_VINE -> patch.comicVine.getOrNull()
+                ?.let { copy(comicVine = providerConfig(comicVine, it)) }
+
+            CoreProviders.HENTAG -> patch.hentag.getOrNull()
+                ?.let { copy(hentag = providerConfig(hentag, it)) }
+
+            CoreProviders.MANGA_BAKA -> patch.mangaBaka.getOrNull()
+                ?.let { copy(mangaBaka = mangaBakaProviderConfig(mangaBaka, it)) }
+
+            CoreProviders.WEBTOONS -> patch.webtoons.getOrNull()
+                ?.let { copy(webtoons = providerConfig(webtoons, it)) }
+        } ?: this
 
     private fun providersConfig(patch: ProvidersConfigUpdateRequest): ProvidersConfig {
         val config = ProvidersConfig()

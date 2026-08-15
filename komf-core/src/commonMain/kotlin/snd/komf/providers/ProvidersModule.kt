@@ -958,26 +958,13 @@ class ProvidersModule(
         private val bookWalkerJpPriority: Int,
     ) {
 
-        val providers = listOfNotNull(
-            mangaupdates?.let { it to mangaupdatesPriority },
-            mal?.let { it to malPriority },
-            nautiljon?.let { it to nautiljonPriority },
-            anilist?.let { it to anilistPriority },
-            yenPress?.let { it to yenPressPriority },
-            kodansha?.let { it to kodanshaPriority },
-            viz?.let { it to vizPriority },
-            bookwalker?.let { it to bookwalkerPriority },
-            mangaDex?.let { it to mangaDexPriority },
-            bangumi?.let { it to bangumiPriority },
-            comicVine?.let { it to comicVinePriority },
-            hentag?.let { it to hentagPriority },
-            mangaBaka?.let { it to mangaBakaPriority },
-            webtoons?.let { it to webtoonsPriority },
-            dlsite?.let { it to dlsitePriority },
-            bookWalkerJp?.let { it to bookWalkerJpPriority }
-        )
+        // Walked from the enum rather than hand-listed. The previous list was a
+        // separate inventory of every provider, and one left out of it was built,
+        // configured and reachable by name while never taking part in a match -
+        // with nothing failing to say so.
+        val providers = CoreProviders.entries
+            .mapNotNull { core -> provider(core)?.let { it to priority(core) } }
             .sortedBy { (_, priority) -> priority }
-            .toMap()
             .map { (provider, _) -> provider }
 
         fun provider(provider: CoreProviders): MetadataProvider? {
@@ -1000,6 +987,26 @@ class ProvidersModule(
                 CoreProviders.BOOK_WALKER_JP -> bookWalkerJp
             }
         }
+
+        private fun priority(provider: CoreProviders): Int =
+            when (provider) {
+                CoreProviders.MAL -> malPriority
+                CoreProviders.MANGA_UPDATES -> mangaupdatesPriority
+                CoreProviders.NAUTILJON -> nautiljonPriority
+                CoreProviders.ANILIST -> anilistPriority
+                CoreProviders.YEN_PRESS -> yenPressPriority
+                CoreProviders.KODANSHA -> kodanshaPriority
+                CoreProviders.VIZ -> vizPriority
+                CoreProviders.BOOK_WALKER -> bookwalkerPriority
+                CoreProviders.MANGADEX -> mangaDexPriority
+                CoreProviders.BANGUMI -> bangumiPriority
+                CoreProviders.COMIC_VINE -> comicVinePriority
+                CoreProviders.HENTAG -> hentagPriority
+                CoreProviders.MANGA_BAKA -> mangaBakaPriority
+                CoreProviders.WEBTOONS -> webtoonsPriority
+                CoreProviders.DLSITE -> dlsitePriority
+                CoreProviders.BOOK_WALKER_JP -> bookWalkerJpPriority
+            }
     }
 
 
