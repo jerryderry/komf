@@ -130,31 +130,39 @@ class KomgaMediaServerClientAdapter(
         seriesId: MediaServerSeriesId,
         metadata: MediaServerSeriesMetadataUpdate
     ) {
-        komgaSeriesClient.update(
-            seriesId = KomgaSeriesId(seriesId.value),
-            request = metadata.toMetadataUpdateRequest()
-        )
+        ignoringUnitConversion {
+            komgaSeriesClient.update(
+                seriesId = KomgaSeriesId(seriesId.value),
+                request = metadata.toMetadataUpdateRequest()
+            )
+        }
     }
 
     override suspend fun deleteSeriesThumbnail(seriesId: MediaServerSeriesId, thumbnailId: MediaServerThumbnailId) {
-        komgaSeriesClient.deleteThumbnail(
-            KomgaSeriesId(seriesId.value),
-            KomgaThumbnailId(thumbnailId.value)
-        )
+        ignoringUnitConversion {
+            komgaSeriesClient.deleteThumbnail(
+                KomgaSeriesId(seriesId.value),
+                KomgaThumbnailId(thumbnailId.value)
+            )
+        }
     }
 
     override suspend fun updateBookMetadata(bookId: MediaServerBookId, metadata: MediaServerBookMetadataUpdate) {
-        komgaBookClient.updateMetadata(
-            KomgaBookId(bookId.value),
-            metadata.toKomgaMetadataUpdate()
-        )
+        ignoringUnitConversion {
+            komgaBookClient.updateMetadata(
+                KomgaBookId(bookId.value),
+                metadata.toKomgaMetadataUpdate()
+            )
+        }
     }
 
     override suspend fun deleteBookThumbnail(bookId: MediaServerBookId, thumbnailId: MediaServerThumbnailId) {
-        komgaBookClient.deleteThumbnail(
-            KomgaBookId(bookId.value),
-            KomgaThumbnailId(thumbnailId.value)
-        )
+        ignoringUnitConversion {
+            komgaBookClient.deleteThumbnail(
+                KomgaBookId(bookId.value),
+                KomgaThumbnailId(thumbnailId.value)
+            )
+        }
     }
 
     override suspend fun resetBookMetadata(bookId: MediaServerBookId, bookName: String, bookNumber: Int?) {
@@ -219,7 +227,9 @@ class KomgaMediaServerClientAdapter(
     }
 
     override suspend fun refreshMetadata(libraryId: MediaServerLibraryId, seriesId: MediaServerSeriesId) {
-        komgaSeriesClient.analyze(KomgaSeriesId(seriesId.value))
+        ignoringUnitConversion {
+            komgaSeriesClient.analyze(KomgaSeriesId(seriesId.value))
+        }
     }
 
     private fun KomgaSeries.toMediaServerSeries(): MediaServerSeries {
@@ -463,4 +473,22 @@ class KomgaMediaServerClientAdapter(
     )
 
     private fun <T> patchIfNotNull(value: T?) = value?.let { PatchValue.Some(it) } ?: PatchValue.Unset
+}
+
+/**
+ * komga-client turns Komga's 204s into Unit with body<Unit>(), and against the Ktor
+ * version komf builds with that hands back the saved response instead, so the cast it
+ * performs throws. The request has already succeeded by then - Komga logs the 204 - and
+ * nothing reads the result, so the throw only serves to abandon whatever came next. On
+ * an identify that was everything after the series update: the authors, the rest of the
+ * book metadata and the cover upload.
+ *
+ * Narrow on purpose: only a ClassCastException naming kotlin.Unit is swallowed.
+ */
+private inline fun <T> ignoringUnitConversion(block: () -> T) {
+    try {
+        block()
+    } catch (e: ClassCastException) {
+        if (e.message?.contains("kotlin.Unit") != true) throw e
+    }
 }
